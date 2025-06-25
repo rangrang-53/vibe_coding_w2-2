@@ -1,0 +1,77 @@
+name: PR Auto Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  code-review:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Auto code review comment
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const { owner, repo } = context.repo;
+          const prNumber = context.payload.pull_request.number;
+          
+          // PR 파일 변경 사항 가져오기
+          const files = await github.rest.pulls.listFiles({
+            owner,
+            repo,
+            pull_number: prNumber
+          });
+          
+          const changedFiles = files.data;
+          const reviewComments = [];
+          
+          // Python 파일에 대한 기본 코드 리뷰 가이드라인
+          for (const file of changedFiles) {
+            if (file.filename.endsWith('.py')) {
+              // 파일 크기 체크
+              if (file.changes > 300) {
+                reviewComments.push(`📝 **${file.filename}**: 파일이 너무 큽니다 (${file.changes} 줄 변경). 더 작은 단위로 나누는 것을 고려해보세요.`);
+              }
+              
+              // 테스트 파일 체크
+              if (!file.filename.includes('test_') && file.status === 'added') {
+                const testFileName = file.filename.replace('.py', '').replace('app/', 'tests/test_');
+                reviewComments.push(`🧪 **${file.filename}**: 새로운 모듈에 대한 테스트 파일 (${testFileName}_test.py)을 추가하는 것을 고려해보세요.`);
+              }
+            }
+            
+            // 문서 파일 체크
+            if (file.filename.endsWith('.md') && file.status === 'modified') {
+              reviewComments.push(`📖 **${file.filename}**: 문서 변경 사항을 확인해주세요.`);
+            }
+          }
+          
+          // 리뷰 댓글 생성
+          if (reviewComments.length > 0) {
+            let reviewBody = '## 🤖 자동 코드 리뷰\n\n';
+            reviewBody += reviewComments.join('\n\n');
+            reviewBody += '\n\n## 일반적인 리뷰 포인트\n';
+            reviewBody += '- [ ] 코드 스타일 및 포맷팅 확인\n';
+            reviewBody += '- [ ] 에러 핸들링 적절성 검토\n';
+            reviewBody += '- [ ] 보안 취약점 확인\n';
+            reviewBody += '- [ ] 성능 최적화 가능성 검토\n';
+            reviewBody += '- [ ] 테스트 커버리지 확인\n\n';
+            reviewBody += '*이것은 자동 생성된 리뷰입니다. 실제 코드 리뷰는 팀 멤버가 진행해주세요.*';
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: prNumber,
+              body: reviewBody
+            });
+          }
+          
+          // PR에 review-needed 라벨 추가
+          await github.rest.issues.addLabels({
+            owner,
+            repo,
+            issue_number: prNumber,
+            labels: ['status: review-needed']
+          }); 

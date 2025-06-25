@@ -1,0 +1,62 @@
+name: Issue Auto Assign
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  assign:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Auto assign issue
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const { owner, repo } = context.repo;
+          const issueNumber = context.payload.issue.number;
+          const issueTitle = context.payload.issue.title.toLowerCase();
+          const issueBody = context.payload.issue.body || '';
+          
+          // 저장소의 모든 collaborators 가져오기
+          const collaborators = await github.rest.repos.listCollaborators({
+            owner,
+            repo
+          });
+          
+          let assignee = null;
+          const availableAssignees = collaborators.data.map(user => user.login);
+          
+          // 이슈 타입과 내용에 따른 담당자 할당 로직
+          if (issueTitle.includes('backend') || issueBody.includes('backend') || 
+              issueTitle.includes('api') || issueBody.includes('fastapi')) {
+            // 백엔드 관련 이슈 - 백엔드 전담자 우선 할당 (여기서는 랜덤)
+            assignee = availableAssignees[Math.floor(Math.random() * availableAssignees.length)];
+          } else if (issueTitle.includes('frontend') || issueBody.includes('frontend') || 
+                     issueTitle.includes('ui') || issueBody.includes('streamlit')) {
+            // 프론트엔드 관련 이슈
+            assignee = availableAssignees[Math.floor(Math.random() * availableAssignees.length)];
+          } else if (issueTitle.includes('agent') || issueBody.includes('agent') || 
+                     issueTitle.includes('langgraph') || issueBody.includes('ai')) {
+            // Agent 관련 이슈
+            assignee = availableAssignees[Math.floor(Math.random() * availableAssignees.length)];
+          } else if (issueTitle.includes('test') || issueBody.includes('test') || 
+                     issueTitle.includes('pytest')) {
+            // 테스트 관련 이슈
+            assignee = availableAssignees[Math.floor(Math.random() * availableAssignees.length)];
+          } else {
+            // 일반 이슈는 랜덤 할당
+            assignee = availableAssignees[Math.floor(Math.random() * availableAssignees.length)];
+          }
+          
+          if (assignee && availableAssignees.includes(assignee)) {
+            await github.rest.issues.addAssignees({
+              owner,
+              repo,
+              issue_number: issueNumber,
+              assignees: [assignee]
+            });
+            
+            console.log(`Assigned issue to: ${assignee}`);
+          } else {
+            console.log('No suitable assignee found');
+          } 

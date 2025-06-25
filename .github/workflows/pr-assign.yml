@@ -1,0 +1,44 @@
+name: PR Auto Assign
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  assign:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Auto assign PR
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const { owner, repo } = context.repo;
+          const prAuthor = context.payload.pull_request.user.login;
+          
+          // 저장소의 모든 collaborators 가져오기
+          const collaborators = await github.rest.repos.listCollaborators({
+            owner,
+            repo
+          });
+          
+          // PR 작성자를 제외한 collaborators 필터링
+          const reviewers = collaborators.data
+            .filter(user => user.login !== prAuthor)
+            .map(user => user.login);
+          
+          if (reviewers.length > 0) {
+            // 최대 2명의 리뷰어를 랜덤하게 선택
+            const shuffled = reviewers.sort(() => 0.5 - Math.random());
+            const selectedReviewers = shuffled.slice(0, Math.min(2, reviewers.length));
+            
+            await github.rest.pulls.requestReviewers({
+              owner,
+              repo,
+              pull_number: context.payload.pull_request.number,
+              reviewers: selectedReviewers
+            });
+            
+            console.log(`Assigned reviewers: ${selectedReviewers.join(', ')}`);
+          } else {
+            console.log('No available reviewers found');
+          } 

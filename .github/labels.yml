@@ -1,0 +1,95 @@
+# 라벨 정의 파일
+# 이 파일을 사용하여 GitHub 저장소의 라벨을 자동으로 생성/관리할 수 있습니다
+
+# Priority Labels
+- name: "priority: critical"
+  color: "d73a4a"
+  description: "즉시 처리가 필요한 중요한 이슈"
+
+- name: "priority: high"
+  color: "ff9800"
+  description: "높은 우선순위"
+
+- name: "priority: medium"
+  color: "ffeb3b"
+  description: "보통 우선순위"
+
+- name: "priority: low"
+  color: "4caf50"
+  description: "낮은 우선순위"
+
+# Type Labels
+- name: "type: bug"
+  color: "d73a4a"
+  description: "버그 또는 오류"
+
+- name: "type: feature"
+  color: "0052cc"
+  description: "새로운 기능 요청"
+
+- name: "type: enhancement"
+  color: "7057ff"
+  description: "기존 기능 개선"
+
+- name: "type: documentation"
+  color: "008672"
+  description: "문서 관련"
+
+- name: "type: question"
+  color: "cc317c"
+  description: "질문 또는 도움 요청"
+
+# Component Labels
+- name: "component: backend"
+  color: "1d76db"
+  description: "백엔드 (FastAPI) 관련"
+
+- name: "component: frontend"
+  color: "0366d6"
+  description: "프론트엔드 (Streamlit) 관련"
+
+- name: "component: agent"
+  color: "28a745"
+  description: "Agent (LangGraph) 관련"
+
+- name: "component: test"
+  color: "f9ca24"
+  description: "테스트 관련"
+
+# Status Labels
+- name: "status: in-progress"
+  color: "fbca04"
+  description: "현재 작업 중"
+
+- name: "status: review-needed"
+  color: "0e8a16"
+  description: "리뷰가 필요함"
+
+- name: "status: blocked"
+  color: "b60205"
+  description: "블로킹됨"
+
+- name: "status: ready-to-merge"
+  color: "0e8a16"
+  description: "머지 준비 완료"
+
+# Additional Labels
+- name: "good first issue"
+  color: "7057ff"
+  description: "새로운 기여자에게 좋은 첫 이슈"
+
+- name: "help wanted"
+  color: "159818"
+  description: "도움이 필요한 이슈"
+
+- name: "wontfix"
+  color: "ffffff"
+  description: "수정하지 않을 이슈"
+
+- name: "duplicate"
+  color: "cccccc"
+  description: "중복된 이슈"
+
+- name: "invalid"
+  color: "e6e6e6"
+  description: "유효하지 않은 이슈" 

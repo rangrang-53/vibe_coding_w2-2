@@ -1,0 +1,56 @@
+name: Issue Auto Comment
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Comment on issue
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const { owner, repo } = context.repo;
+          const issueNumber = context.payload.issue.number;
+          const issueTitle = context.payload.issue.title.toLowerCase();
+          const issueBody = context.payload.issue.body || '';
+          
+          let responseMessage = '👋 이슈를 등록해주셔서 감사합니다!\n\n';
+          responseMessage += '## 처리 프로세스\n';
+          responseMessage += '1. 🏷️ 라벨이 자동으로 부여되었습니다\n';
+          responseMessage += '2. 👥 담당자가 자동으로 할당되었습니다\n';
+          responseMessage += '3. 📋 이슈가 우선순위에 따라 분류되었습니다\n\n';
+          responseMessage += '## 다음 단계\n';
+
+          // 이슈 타입에 따른 맞춤 응답
+          if (issueTitle.includes('bug') || issueTitle.includes('[bug]')) {
+            responseMessage += '- 🐛 **버그 리포트**로 분류되었습니다\n';
+            responseMessage += '- 재현 단계와 환경 정보를 확인하겠습니다\n';
+            responseMessage += '- 우선순위에 따라 수정 일정을 안내드리겠습니다\n';
+          } else if (issueTitle.includes('feature') || issueTitle.includes('[feature]')) {
+            responseMessage += '- ✨ **기능 요청**으로 분류되었습니다\n';
+            responseMessage += '- 요구사항을 분석하고 기술적 검토를 진행하겠습니다\n';
+            responseMessage += '- 개발 일정과 우선순위를 검토한 후 안내드리겠습니다\n';
+          } else if (issueTitle.includes('question') || issueTitle.includes('[question]')) {
+            responseMessage += '- ❓ **질문**으로 분류되었습니다\n';
+            responseMessage += '- 가능한 빠른 시일 내에 답변드리겠습니다\n';
+            responseMessage += '- 추가 정보가 필요한 경우 별도로 안내드리겠습니다\n';
+          } else {
+            responseMessage += '- 📝 이슈 내용을 검토하고 적절한 조치를 취하겠습니다\n';
+            responseMessage += '- 추가 정보가 필요한 경우 댓글로 요청드리겠습니다\n';
+          }
+
+          responseMessage += '\n## 참고사항\n';
+          responseMessage += '- 🔄 이슈 상태는 진행 상황에 따라 업데이트됩니다\n';
+          responseMessage += '- 💬 질문이나 추가 정보가 있으시면 언제든 댓글로 남겨주세요\n';
+          responseMessage += '- ⏰ 일반적으로 1-2일 내에 초기 응답을 드립니다\n\n';
+          responseMessage += '감사합니다! 🚀';
+
+          await github.rest.issues.createComment({
+            owner,
+            repo,
+            issue_number: issueNumber,
+            body: responseMessage
+          }); 

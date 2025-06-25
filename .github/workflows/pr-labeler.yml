@@ -1,0 +1,80 @@
+name: PR Auto Labeler
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Auto label PR
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const { owner, repo } = context.repo;
+          const prNumber = context.payload.pull_request.number;
+          const title = context.payload.pull_request.title.toLowerCase();
+          const labels = [];
+          
+          // 제목 기반 라벨링
+          if (title.includes('[feat]') || title.includes('feat:')) {
+            labels.push('type: feature');
+          } else if (title.includes('[fix]') || title.includes('fix:')) {
+            labels.push('type: bug');
+          } else if (title.includes('[docs]') || title.includes('docs:')) {
+            labels.push('type: documentation');
+          } else if (title.includes('[test]') || title.includes('test:')) {
+            labels.push('component: test');
+          } else if (title.includes('[refactor]') || title.includes('refactor:')) {
+            labels.push('type: enhancement');
+          }
+          
+          // PR 파일 변경 사항 기반 라벨링
+          const files = await github.rest.pulls.listFiles({
+            owner,
+            repo,
+            pull_number: prNumber
+          });
+          
+          const changedFiles = files.data.map(file => file.filename);
+          
+          // 컴포넌트 라벨 추가
+          if (changedFiles.some(file => file.startsWith('vibe_coding_w2-1/backend/'))) {
+            labels.push('component: backend');
+          }
+          
+          if (changedFiles.some(file => file.startsWith('vibe_coding_w2-1/frontend/'))) {
+            labels.push('component: frontend');
+          }
+          
+          if (changedFiles.some(file => file.includes('agent'))) {
+            labels.push('component: agent');
+          }
+          
+          if (changedFiles.some(file => file.includes('test'))) {
+            labels.push('component: test');
+          }
+          
+          if (changedFiles.some(file => file.includes('.md') || file.includes('docs/'))) {
+            labels.push('type: documentation');
+          }
+          
+          // 우선순위 라벨 (기본값: medium)
+          if (!labels.some(label => label.startsWith('priority:'))) {
+            labels.push('priority: medium');
+          }
+          
+          // 라벨 적용
+          if (labels.length > 0) {
+            await github.rest.issues.addLabels({
+              owner,
+              repo,
+              issue_number: prNumber,
+              labels: labels
+            });
+            
+            console.log(`Applied labels: ${labels.join(', ')}`);
+          } 

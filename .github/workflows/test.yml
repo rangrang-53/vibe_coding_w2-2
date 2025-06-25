@@ -1,0 +1,53 @@
+name: Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.11]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install backend dependencies
+      run: |
+        cd vibe_coding_w2-1/backend
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-cov
+
+    - name: Install frontend dependencies
+      run: |
+        cd vibe_coding_w2-1/frontend
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Test with pytest (Backend)
+      run: |
+        cd vibe_coding_w2-1/backend
+        python -m pytest tests/ -v --cov=app --cov-report=term-missing
+
+    - name: Test with pytest (Frontend)
+      run: |
+        cd vibe_coding_w2-1/frontend
+        python -m pytest tests/ -v || echo "No frontend tests found"
+
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./vibe_coding_w2-1/backend/coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false 

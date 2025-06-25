@@ -1,0 +1,33 @@
+name: PR Auto Comment
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Comment PR
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `👋 PR이 생성되었습니다! 
+
+          ## PR 체크리스트
+          - [ ] 코드 리뷰 완료
+          - [ ] 테스트 통과 확인
+          - [ ] 문서 업데이트 (필요한 경우)
+          - [ ] 브레이킹 체인지 확인
+
+          ## 자동 처리 사항
+          - 🏷️ 라벨이 자동으로 부여되었습니다
+          - 👥 리뷰어가 자동으로 할당되었습니다
+          - 🧪 테스트가 자동으로 실행됩니다
+
+          리뷰어 배정이 완료되면 코드 리뷰를 진행해주세요! 🚀`
+          }) 
