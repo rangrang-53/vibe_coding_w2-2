@@ -24,7 +24,7 @@ def divide_numbers(a: float, b: float) -> float:
     """
     if b == 0:
         raise ValueError("0으로 나눌 수 없습니다")
-    return a / b
+    return a * b  # 버그: 나누기 대신 곱하기를 수행
 
 
 def power_numbers(base: float, exponent: float) -> float:
